@@ -72,9 +72,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switchText.setOnClickListener(this);
         background.setOnClickListener(this);
 
-//        if (ParseUser.getCurrentUser() != null) {
-//            showUserList();
-//        }
+        if (ParseUser.getCurrentUser() != null) {
+            showUserList();
+        }
         ParseAnalytics.trackAppOpenedInBackground(getIntent());
 
 
@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (e == null) {
                     Log.i("Success", "Sign up successfully");
                     Toast.makeText(MainActivity.this, "sign up successfully", Toast.LENGTH_SHORT).show();
-                    //showUserList();
+                    showUserList();
                 } else {
                     //e.printStackTrace();
                     Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (user != null) {
                     Log.i("Success", "Log in successfully");
                     Toast.makeText(MainActivity.this, "log in successfully", Toast.LENGTH_SHORT).show();
-                    //showUserList();
+                    showUserList();
                 } else {
                     //e.printStackTrace();
                     Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -130,8 +130,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
-//    public void showUserList() {
-//        Intent intent = new Intent(getApplicationContext(), UserListActivity.class);
-//        startActivity(intent);
-//    }
+    public void showUserList() {
+        Intent intent = new Intent(getApplicationContext(), UserListActivity.class);
+        startActivity(intent);
+    }
 }
