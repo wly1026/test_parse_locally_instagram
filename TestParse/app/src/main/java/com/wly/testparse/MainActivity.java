@@ -16,7 +16,6 @@ import android.widget.Toast;
 import com.parse.LogInCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseException;
-import com.parse.ParseObject;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
@@ -51,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setTitle("Home Recipe");
 
 //        ParseObject firstObject = new  ParseObject("FirstClass");
 //        firstObject.put("message","Hey ! First message from android. Parse is now connected");
