@@ -14,7 +14,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TestParse">
-        <activity android:name=".UserFeedActivity"></activity>
+        <activity android:name=".PostActivity"></activity>
+        <activity android:name=".UserFeedActivity" />
         <activity android:name=".UserListActivity" />
 
         <meta-data

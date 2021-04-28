@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -17,8 +18,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CheckedTextView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -31,15 +35,13 @@ import com.parse.ParseUser;
 import com.parse.SaveCallback;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserListActivity extends AppCompatActivity {
 
-    public void getPhoto() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, 1);
-    }
+    ArrayList<String> users;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -50,30 +52,16 @@ public class UserListActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.share) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-            } else {
-                getPhoto();
-            }
-        } else if (item.getItemId() == R.id.logout) {
+        if (item.getItemId() == R.id.logout) {
             ParseUser.logOut();
-
             startActivity(new Intent(getApplicationContext(), MainActivity.class));
+        } else if (item.getItemId() == R.id.post) {
+            startActivity(new Intent(getApplicationContext(), PostActivity.class));
+        } else if (item.getItemId() == R.id.viewFeed) {
+            startActivity(new Intent(getApplicationContext(), UserFeedActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getPhoto();
-            }
-        }
     }
 
     @Override
@@ -84,70 +72,58 @@ public class UserListActivity extends AppCompatActivity {
         setTitle("Your Friends");
 
         ListView listView = findViewById(R.id.listView);
-        List<String> usernames = new ArrayList<>();
-        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, usernames);
+        listView.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
 
+        users = new ArrayList<>();
+        ArrayAdapter arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_checked, users);
+        listView.setAdapter(arrayAdapter);
+
+        // retrieve data form parse
         ParseQuery<ParseUser> query = ParseUser.getQuery();
         query.whereNotEqualTo("username", ParseUser.getCurrentUser().getUsername());
-        query.addAscendingOrder("username");
         query.findInBackground(new FindCallback<ParseUser>() {
             @Override
             public void done(List<ParseUser> objects, ParseException e) {
                 if (e == null) {
                     for (ParseUser user: objects) {
-                        usernames.add(user.getUsername());
+                        users.add(user.getUsername());
                     }
-                    listView.setAdapter(arrayAdapter);
+                    arrayAdapter.notifyDataSetChanged();
+
+                    // update checked button
+                    for (String user: users) {
+                        if (ParseUser.getCurrentUser().getList("isFollowing").contains(user)) {
+                            listView.setItemChecked(users.indexOf(user), true);
+                        }
+                    }
+
                 } else {
                     e.printStackTrace();
                 }
             }
         });
 
+        // create isFollowing lists according to if the item is checked
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getApplicationContext(), UserFeedActivity.class);
-                intent.putExtra("username", usernames.get(position));
-                startActivity(intent);
+                CheckedTextView checkedTextView = (CheckedTextView) view;
+                if (checkedTextView.isChecked()) {
+                    Log.i("Info","Checked!");
+                    ParseUser.getCurrentUser().add("isFollowing",users.get(position));
+                } else {
+                    Log.i("Info", "NOT Checked!");
+                    ParseUser.getCurrentUser().getList("isFollowing").remove(users.get(position));
+                    List tempUsers = ParseUser.getCurrentUser().getList("isFollowing");
+                    ParseUser.getCurrentUser().remove("isFollowing");
+                    ParseUser.getCurrentUser().put("isFollowing",tempUsers);
+                }
+                ParseUser.getCurrentUser().saveInBackground();
             }
         });
+
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
 
-        // store the image
-        Uri selectedImage = data.getData();
 
-        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImage);
-                Log.i("Image Selected", "Good work");
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte[] byteArray = stream.toByteArray();
-
-                ParseFile file = new ParseFile("image.png", byteArray);
-                ParseObject object = new ParseObject("Image");
-                object.put("image", file);
-                object.put("username", ParseUser.getCurrentUser().getUsername());
-
-                object.saveInBackground(new SaveCallback() {
-                    @Override
-                    public void done(ParseException e) {
-                        if (e == null) {
-                            Toast.makeText(UserListActivity.this, "Image has been shared!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(UserListActivity.this, "There has been an issue uploading the image :(", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }

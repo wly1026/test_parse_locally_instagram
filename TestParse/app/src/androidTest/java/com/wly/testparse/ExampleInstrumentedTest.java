@@ -23,4 +23,9 @@ public class ExampleInstrumentedTest {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
         assertEquals("com.wly.testparse", appContext.getPackageName());
     }
+
+    @Test
+    public void testArray() {
+
+    }
 }

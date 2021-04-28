@@ -19,6 +19,8 @@ import com.parse.ParseException;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     EditText userName;
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         user.setUsername(userName.getText().toString());
         user.setPassword(password.getText().toString());
+        //user.add("isFollowing", new ArrayList<String>());
 
         user.signUpInBackground(new SignUpCallback() {
             @Override

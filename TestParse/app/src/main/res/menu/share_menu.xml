@@ -4,8 +4,12 @@
 
 
     <item
-        android:id="@+id/share"
-        android:title="Share" />
+        android:id="@+id/viewFeed"
+        android:title="ViewFeed" />
+
+    <item
+        android:id="@+id/post"
+        android:title="Post" />
 
     <item
         android:id="@+id/logout"
